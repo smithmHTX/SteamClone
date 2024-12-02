@@ -61,6 +61,7 @@ public:
     GameRating getRating() const { return rating; }
     std::string getGenre() const { return genre; }
     double getAverageRating() const { return averageUserRating; }
+    std::string getDescription() const { return description; }
 
     // Method to add review
     void addReview(const std::string& reviewText, int starRating) {
@@ -108,6 +109,8 @@ public:
     bool login(const std::string& enteredPassword) {
         return password == enteredPassword;
     }
+
+    std::string getUsername() const { return username; }
 
     void addToLibrary(Game* game) {
         library.push_back(game);
@@ -253,68 +256,185 @@ public:
             }
         }
 
-        // Add 2 default posts to the community tab
+        // Add 3 default posts to the community tab
         communityPosts.push_back(new Post("post1", "user1", "This game is awesome!"));
         communityPosts.push_back(new Post("post2", "user2", "Anyone want to play?"));
+        communityPosts.push_back(new Post("post3", "user3", "sigma"));
     }
 
     void runTextUI() 
     {
-        int choice;
-        User* currentUser = nullptr; // To keep track of logged-in user
-        do {
-            std::cout << "\nWelcome to the Game Store!\n";
-            std::cout << "Navigation:\n";
-            std::cout << "1. Community " << (choice == 1 ? "(You're here)" : "") << std::endl;
-            std::cout << "2. Wishlist " << (choice == 2 ? "(You're here)" : "") << std::endl;
-            std::cout << "3. Browse Games " << (choice == 3 ? "(You're here)" : "") << std::endl;
-            std::cout << "4. Library " << (choice == 4 ? "(You're here)" : "") << std::endl;
-            // ... (Other options)
-            std::cout << "0. Exit\n";
-            std::cout << "Enter your choice: ";
-            std::cin >> choice;
+        std::string input;
+    User* currentUser = nullptr;
+    bool loggedIn = false;
 
-            switch (choice) 
-            {
-                case 1: { // Community
-                    std::cout << "\nCommunity Tab:\n";
-                    for (const auto& post : communityPosts) {
-                        std::cout << post->userId << ": " << post->content << std::endl;
-                    }
-                    // ... (Add options to create posts, comment, etc.)
-                    break;
+    while (true) 
+    {
+        std::cout << "\nWelcome to the Game Store!\n";
+        if (loggedIn) {
+            std::cout << "Logged in as: " << currentUser->getUsername() << std::endl;
+        }
+        std::cout << "Navigation:\n";
+        std::cout << "1. Community\n";
+        std::cout << "2. Wishlist\n";
+        std::cout << "3. Browse Games\n";
+        std::cout << "4. Library\n";
+        std::cout << (loggedIn ? "5. Logout\n" : "5. Login\n");
+        std::cout << "0. Exit\n";
+        std::cout << "Enter your choice: ";
+        std::cin >> input;
+
+        if (input == "1") { // Community
+            while (true) {
+                std::cout << "\nCommunity Tab:\n";
+                for (const auto& post : communityPosts) {
+                    std::cout << post->userId << ": " << post->content << std::endl;
                 }
-                case 2: // Wishlist
-                    std::cout << "\nWishlist:\n";
-                    if (currentUser) {
-                        // ... (Display currentUser's wishlist)
-                    } else {
-                        std::cout << "You need to log in to view your wishlist.\n";
-                    }
-                    break;
-                case 3: // Browse Games
-                    std::cout << "\nBrowse Games:\n";
-                    for (const auto& game : games) {
-                        std::cout << game->getTitle() << " - $" << game->getPrice() << std::endl;
-                    }
-                    // ... (Add options to view game details, add to cart, etc.)
-                    break;
-                case 4: // Library
-                    std::cout << "\nLibrary:\n";
-                    if (currentUser) {
-                        // ... (Display currentUser's library)
-                    } else {
-                        std::cout << "You need to log in to view your library.\n";
-                    }
-                    break;
-                // ... (Handle other cases)
-                case 0:
-                    std::cout << "Exiting...\n";
-                    break;
-                default:
+                std::cout << "\nOptions:\n";
+                std::cout << "1. Write a post\n";
+                std::cout << "2. navbar\n";
+                std::cout << "Enter your choice: ";
+                std::cin >> input;
+
+                if (input == "1") 
+                {
+                    // ... (Implement write a post logic)
+                } else if (input == "2") {
+                    break; // Go back to navbar
+                } else {
                     std::cout << "Invalid choice!\n";
+                }
             }
-        } while (choice != 0);
+        } else if (input == "2") { // Wishlist
+            while (true) {
+                std::cout << "\nWishlist:\n";
+                if (currentUser) {
+                    // ... (Display currentUser's wishlist)
+                } else {
+                    std::cout << "You need to log in to view your wishlist.\n";
+                }
+                std::cout << "\nOptions:\n";
+                std::cout << "1. navbar\n";
+                std::cout << "Enter your choice: ";
+                std::cin >> input;
+
+                if (input == "1") {
+                    break; // Go back to navbar
+                } else {
+                    std::cout << "Invalid choice!\n";
+                }
+            }
+        } else if (input == "3") { // Browse Games
+            while (true) {
+                std::cout << "\nBrowse Games:\n";
+                for (int i = 0; i < games.size(); ++i) {
+                    std::cout << i + 1 << ". " << games[i]->getTitle() << std::endl;
+                }
+                std::cout << "\nOptions:\n";
+                std::cout << "1. View Game\n";
+                std::cout << "2. navbar\n";
+                std::cout << "Enter your choice: ";
+                std::cin >> input;
+
+                if (input == "1") {
+                    std::string gameTitle;
+                    std::cout << "Enter the title of the game to view: ";
+                    std::cin.ignore(); // Ignore the newline character in buffer
+                    std::getline(std::cin, gameTitle);
+                    Game* selectedGame = nullptr;
+                    for (const auto& game : games) {
+                        if (game->getTitle() == gameTitle) {
+                            selectedGame = game;
+                            break;
+                        }
+                    }
+                    if (selectedGame) {
+                        while (true) {
+                            std::cout << "\nGame Details:\n";
+                            std::cout << "Title: " << selectedGame->getTitle() << std::endl;
+                            std::cout << "Description: " << selectedGame->getDescription() << std::endl;
+                            std::cout << "Price: $" << selectedGame->getPrice() << std::endl;
+                            // ... (Display other details)
+                            std::cout << "\nOptions:\n";
+                            std::cout << "1. Buy Game\n";
+                            std::cout << "2. Review Game\n";
+                            std::cout << "3. See Reviews\n";
+                            std::cout << "4. Add to Wishlist\n";
+                            std::cout << "5. back\n";
+                            std::cout << "Enter your choice: ";
+                            std::cin >> input;
+
+                            if (input == "1") {
+                                if (loggedIn) {
+                                    // ... (Implement buy game logic)
+                                } else {
+                                    std::cout << "You need to be logged in to buy a game.\n";
+                                }
+                            } else if (input == "2") {
+                                if (loggedIn) {
+                                    // ... (Implement review game logic)
+                                } else {
+                                    std::cout << "You need to be logged in to review a game.\n";
+                                }
+                            } else if (input == "3") {
+                                // ... (Implement see reviews logic)
+                            } else if (input == "4") {
+                                // ... (Implement add to wishlist logic)
+                            } else if (input == "5") {
+                                break; // Go back to browse games
+                            } else {
+                                std::cout << "Invalid choice!\n";
+                            }
+                        }
+                    } else {
+                        std::cout << "Game not found!\n";
+                    }
+                } else if (input == "2") {
+                    break; // Go back to navbar
+                } else {
+                    std::cout << "Invalid choice!\n";
+                }
+            }
+        } else if (input == "4") { // Library
+            while (true) {
+                std::cout << "\nLibrary:\n";
+                if (currentUser) {
+                    // ... (Display currentUser's library)
+                } else {
+                    std::cout << "You need to log in to view your library.\n";
+                }
+                std::cout << "\nOptions:\n";
+                std::cout << "1. View Game\n";
+                std::cout << "2. Wishlist\n";
+                std::cout << "3. navbar\n";
+                std::cout << "Enter your choice: ";
+                std::cin >> input;
+
+                if (input == "1") {
+                    // ... (Implement view game logic - similar to browse games, but with delete option)
+                } else if (input == "2") {
+                    // ... (Implement wishlist logic)
+                } else if (input == "3") {
+                    break; // Go back to navbar
+                } else {
+                    std::cout << "Invalid choice!\n";
+                }
+            }
+        } else if (input == "5") { // Login/Logout
+            if (loggedIn) {
+                currentUser = nullptr;
+                loggedIn = false;
+                std::cout << "Logged out successfully.\n";
+            } else {
+                // ... (Implement login logic)
+            }
+        } else if (input == "0") { // Exit
+            std::cout << "Exiting...\n";
+            break;
+        } else {
+            std::cout << "Invalid choice!\n";
+        }
+    }
     }
 };
 
@@ -324,7 +444,7 @@ int main() {
     marketplace.populateWithDefaults();
     marketplace.runTextUI();
 
-    std::cout << "Video Game Sales Software Initialized with Defaults!" << std::endl;
+    std::cout << "Video Game Sales Software Demo Complete!! :)" << std::endl;
 
     return 0;
 
