@@ -161,12 +161,28 @@ public:
     }
 };
 
+// Class for Community Posts
+class Post {
+public:
+    std::string postId;
+    std::string userId; // User who created the post
+    std::string content;
+    std::time_t timestamp;
+
+    Post(const std::string& id, const std::string& userId, const std::string& content)
+        : postId(id), userId(userId), content(content) {
+        timestamp = std::time(nullptr);
+    }
+};
+
 // GameMarketplace Class to manage overall system
-class GameMarketplace {
+class GameMarketplace 
+{
 private:
     std::vector<User*> users;
     std::vector<Game*> games;
     std::vector<Administrator*> administrators;
+    std::vector<Post*> communityPosts;
 
 public:
     // Methods to register users, add games, etc.
@@ -206,37 +222,110 @@ public:
         for (auto* game : games) delete game;
         for (auto* admin : administrators) delete admin;
     }
+
+    void populateWithDefaults() 
+    {
+        // Create 5 default admin users
+        for (int i = 1; i <= 5; ++i) {
+            std::string adminId = "admin" + std::to_string(i);
+            administrators.push_back(new Administrator(adminId, adminId));
+        }
+
+        // Create 5 default customer users
+        for (int i = 1; i <= 5; ++i) {
+            std::string userId = "user" + std::to_string(i);
+            users.push_back(new User(userId, userId, userId + "@example.com", "password", UserRole::CUSTOMER));
+        }
+
+        // Create 10 default games
+        for (int i = 1; i <= 10; ++i) {
+            std::string gameId = "game" + std::to_string(i);
+            Game* newGame = new Game(gameId, "Game " + std::to_string(i), "Description " + std::to_string(i), 
+                                      19.99 + i, "Genre " + std::to_string(i), 
+                                      static_cast<GameRating>(i % 5), "Developer " + std::to_string(i));
+            games.push_back(newGame);
+
+            // Add reviews to the first 5 games
+            if (i <= 5) {
+                for (int j = 1; j <= i; ++j) {
+                    newGame->addReview("Review " + std::to_string(j), j);
+                }
+            }
+        }
+
+        // Add 2 default posts to the community tab
+        communityPosts.push_back(new Post("post1", "user1", "This game is awesome!"));
+        communityPosts.push_back(new Post("post2", "user2", "Anyone want to play?"));
+    }
+
+    void runTextUI() 
+    {
+        int choice;
+        User* currentUser = nullptr; // To keep track of logged-in user
+        do {
+            std::cout << "\nWelcome to the Game Store!\n";
+            std::cout << "Navigation:\n";
+            std::cout << "1. Community " << (choice == 1 ? "(You're here)" : "") << std::endl;
+            std::cout << "2. Wishlist " << (choice == 2 ? "(You're here)" : "") << std::endl;
+            std::cout << "3. Browse Games " << (choice == 3 ? "(You're here)" : "") << std::endl;
+            std::cout << "4. Library " << (choice == 4 ? "(You're here)" : "") << std::endl;
+            // ... (Other options)
+            std::cout << "0. Exit\n";
+            std::cout << "Enter your choice: ";
+            std::cin >> choice;
+
+            switch (choice) 
+            {
+                case 1: { // Community
+                    std::cout << "\nCommunity Tab:\n";
+                    for (const auto& post : communityPosts) {
+                        std::cout << post->userId << ": " << post->content << std::endl;
+                    }
+                    // ... (Add options to create posts, comment, etc.)
+                    break;
+                }
+                case 2: // Wishlist
+                    std::cout << "\nWishlist:\n";
+                    if (currentUser) {
+                        // ... (Display currentUser's wishlist)
+                    } else {
+                        std::cout << "You need to log in to view your wishlist.\n";
+                    }
+                    break;
+                case 3: // Browse Games
+                    std::cout << "\nBrowse Games:\n";
+                    for (const auto& game : games) {
+                        std::cout << game->getTitle() << " - $" << game->getPrice() << std::endl;
+                    }
+                    // ... (Add options to view game details, add to cart, etc.)
+                    break;
+                case 4: // Library
+                    std::cout << "\nLibrary:\n";
+                    if (currentUser) {
+                        // ... (Display currentUser's library)
+                    } else {
+                        std::cout << "You need to log in to view your library.\n";
+                    }
+                    break;
+                // ... (Handle other cases)
+                case 0:
+                    std::cout << "Exiting...\n";
+                    break;
+                default:
+                    std::cout << "Invalid choice!\n";
+            }
+        } while (choice != 0);
+    }
 };
 
 int main() {
     // Example usage
     GameMarketplace marketplace;
+    marketplace.populateWithDefaults();
+    marketplace.runTextUI();
 
-    // Create a game
-    Game* game1 = marketplace.createGame(
-        "Epic Adventure", 
-        "An incredible journey through mystical lands", 
-        49.99, 
-        "Action-Adventure", 
-        GameRating::T, 
-        "Indie Studios"
-    );
-
-    // Register a user
-    User* user1 = marketplace.registerUser(
-        "GameMaster", 
-        "gamer@example.com", 
-        "securePassword123", 
-        UserRole::CUSTOMER
-    );
-
-    // Add game to user's library
-    user1->addToLibrary(game1);
-
-    // User reviews the game
-    user1->reviewGame(game1, "Amazing game, really enjoyed it!", 5);
-
-    std::cout << "Video Game Sales Software Initialization Complete!" << std::endl;
+    std::cout << "Video Game Sales Software Initialized with Defaults!" << std::endl;
 
     return 0;
+
 }
