@@ -384,6 +384,7 @@ class GameMarketplace
   std::vector < Administrator * > administrators;
 
   std::vector < Post * > communityPosts;
+  std::vector<Game*> gamesOnSale;
 
   public:
 
@@ -527,6 +528,9 @@ class GameMarketplace
 
       }
 
+      if (i <= 3) {
+                gamesOnSale.push_back(newGame);}
+
     }
 
     // Add 3 default posts to the community tab
@@ -587,9 +591,11 @@ class GameMarketplace
 
       std::cout << "2. Browse Games\n";
 
-      std::cout << "3. Library\n";
+      std::cout << "3. Search Games\n";
 
-      std::cout << (loggedIn ? "4. Logout\n" : "4. Login\n");
+      std::cout << "4. Library\n";
+
+      std::cout << (loggedIn ? "5. Logout\n" : "5. Login\n");
 
       std::cout << "0. Exit\n";
 
@@ -613,9 +619,7 @@ class GameMarketplace
 
           std::cout << "1. Write a post\n";
 
-          std::cout << "2. Search Games\n"; // --- Changed: Added Search Games option ---
-
-          std::cout << "3. navbar\n";
+          std::cout << "2. navbar\n";
 
           std::cout << "Enter your choice: ";
 
@@ -645,36 +649,6 @@ class GameMarketplace
 
           } else if (input == "2") {
 
-            // --- Changed: Implemented Search Games in Community ---
-
-            std::string searchQuery;
-
-            std::cout << "Enter search query: ";
-
-            std::cin.ignore();
-
-            std::getline(std::cin, searchQuery);
-
-            std::vector < Game * > searchResults = searchGames(searchQuery);
-
-            if (!searchResults.empty()) {
-
-              std::cout << "\nSearch results:\n";
-
-              for (const auto & game: searchResults) {
-
-                std::cout << "- " << game -> getTitle() << std::endl;
-
-              }
-
-            } else {
-
-              std::cout << "No games found matching your query.\n";
-
-            }
-
-          } else if (input == "3") {
-
             break; // Go back to navbar
 
           } else {
@@ -697,19 +671,20 @@ class GameMarketplace
 
           std::cout << "2. View All Games\n";
 
-          std::cout << "3. Search Games\n"; // --- Changed: Added Search Games option ---
-
-          std::cout << "4. navbar\n";
+          std::cout << "3. navbar\n";
 
           std::cout << "Enter your choice: ";
 
           std::cin >> input;
 
-          if (input == "1") {
+          if (input == "1") { // Games on Sale
 
-            // ... (Implement Games on Sale logic)
+            std::cout << "\nGames on Sale:\n";
+                        for (int i = 0; i < gamesOnSale.size(); ++i) {
+                            std::cout << i + 1 << ". " << gamesOnSale[i]->getTitle() << " - $" << gamesOnSale[i]->getPrice() << std::endl;
+                        }
 
-          } else if (input == "2") {
+          } else if (input == "2") { // View all Games
 
             for (int i = 0; i < games.size(); ++i) {
 
@@ -769,25 +744,45 @@ class GameMarketplace
 
                   std::cout << "1. Buy Game\n";
 
-                  std::cout << "2. Review Game\n";
+                  std::cout << "2. Add to Wishlist\n";
 
-                  std::cout << "3. See Reviews\n";
+                  std::cout << "3. Review Game\n";
 
-                  // --- Changed: Add to Wishlist is now in Library ---
+                  std::cout << "4. See Reviews\n";
 
-                  //std::cout << "4. Add to Wishlist\n";
-
-                  std::cout << "4. back\n"; // Shifted back option to 4
+                  std::cout << "5. back\n";
 
                   std::cout << "Enter your choice: ";
 
                   std::cin >> input;
 
-                  if (input == "1") {
+                  if (input == "1") { //buy game
 
-                    if (loggedIn) {
+                    if (loggedIn) 
+                    {
 
-                      // ... (Implement buy game logic)
+                        // Check if the game is already in the library
+                        bool gameInLibrary = false;
+                        for (const auto& libraryGame : currentUser->getLibrary()) 
+                        {
+                            if (libraryGame->getTitle() == selectedGame->getTitle()) 
+                            {
+                                gameInLibrary = true;
+                                break;
+                            }
+                        }
+
+                        if (!gameInLibrary) 
+                            {
+                                // Simulate basic purchase logic
+                                // In a real system, you'd integrate payment processing here
+                                currentUser->addToLibrary(selectedGame);
+                                std::cout << "Game '" << selectedGame->getTitle() << "' purchased and added to your library.\n";
+                            } 
+                        else 
+                            {
+                                    std::cout << "You already own this game in your library.\n";
+                            }
 
                     } else {
 
@@ -795,19 +790,99 @@ class GameMarketplace
 
                     }
 
-                  } else if (input == "2") {
+                  } else if (input == "2") { //add to wishlist
+                    if (loggedIn) 
+                    {
 
-                    if (loggedIn) {
+                        // Check if the game is already in the wishlist
+                        bool gameInWishlist = false;
+                        for (const auto& WlGame : currentUser->getWishlist()) 
+                        {
+                            if (WlGame->getTitle() == selectedGame->getTitle()) 
+                            {
+                                gameInWishlist = true;
+                                break;
+                            }
+                        }
 
-                      // ... (Implement review game logic)
+                        if (!gameInWishlist) 
+                            {
+                                // Simulate basic purchase logic
+                                // In a real system, you'd integrate payment processing here
+                                currentUser->addToWishlist(selectedGame);
+                                std::cout << "Game '" << selectedGame->getTitle() << "' added to your wish list.\n";
+                            } 
+                        else 
+                            {
+                                    std::cout << "You already have this game in your wish list.\n";
+                            }
 
                     } else {
+
+                      std::cout << "You need to be logged to add a game to the wishlist.\n";
+
+                    }
+
+                  } else if (input == "3") { //review game
+                    if (loggedIn) 
+                    {
+                        // Check if the game is in the user's library
+                        bool gameInLibrary = false;
+                        for (const auto& libraryGame : currentUser->getLibrary()) 
+                        {
+                            if (libraryGame->getTitle() == selectedGame->getTitle()) 
+                            {
+                                gameInLibrary = true;
+                                break;
+                            }
+                        }
+
+                        if (gameInLibrary) 
+                        {
+                            int rating;
+                            std::string reviewText;
+
+                            std::cout << "Enter your review (text): ";
+                            std::cin.ignore();
+                            std::getline(std::cin, reviewText);
+
+                            while (true) 
+                            {
+                                std::cout << "Enter rating (1-5 stars): ";
+                                std::cin >> rating;
+
+                                // Validate rating
+                                if (rating >= 1 && rating <= 5) 
+                                {
+                                    try 
+                                    {
+                                        currentUser->reviewGame(selectedGame, reviewText, rating);
+                                        std::cout << "Review submitted successfully!\n";
+                                        break;
+                                    } catch (const std::exception& e) 
+                                    {
+                                        std::cout << "Error: " << e.what() << std::endl;
+                                    }
+                                } 
+                                else 
+                                {
+                                    std::cout << "Invalid rating. Please enter a rating between 1 and 5.\n";
+                                }
+                            }
+                        } 
+                        else 
+                        {
+                            std::cout << "You can only review games in your library.\n";
+                        }
+                    } 
+                    else 
+                    {
 
                       std::cout << "You need to be logged in to review a game.\n";
 
                     }
 
-                  } else if (input == "3") {
+                  } else if (input == "4") { //see reviews
 
                     std::cout << "\nReviews for " << selectedGame -> getTitle() << ":\n";
 
@@ -827,14 +902,12 @@ class GameMarketplace
 
                     }
 
-                  } else if (input == "4") {
+                  } else if (input == "5") { //back
 
                     break; // Go back to browse games
 
                   } else {
-
                     std::cout << "Invalid choice!\n";
-
                   }
 
                 }
@@ -855,11 +928,20 @@ class GameMarketplace
 
             }
 
-            // --- Changed: Implemented Search Games in Browse Games ---
+          } else if (input == "3") { //navbar
 
-          } else if (input == "3") {
+            break; // Go back to navbar
 
-            std::string searchQuery;
+          } else {
+
+            std::cout << "Invalid choice!\n";
+
+          }
+
+        }
+
+      } else if (input == "3") { // Search Games .....
+        std::string searchQuery;
 
             std::cout << "Enter search query: ";
 
@@ -885,19 +967,7 @@ class GameMarketplace
 
             }
 
-          } else if (input == "4") {
-
-            break; // Go back to navbar
-
-          } else {
-
-            std::cout << "Invalid choice!\n";
-
-          }
-
-        }
-
-      } else if (input == "3") { // Library
+      }else if (input == "4") { // Library
 
         if (loggedIn) {
 
@@ -905,7 +975,6 @@ class GameMarketplace
 
             std::cout << "\nLibrary:\n";
 
-            // --- Changed: Library and Wishlist are now attached to user data ---
 
             if (currentUser) {
 
@@ -927,9 +996,7 @@ class GameMarketplace
 
             std::cout << "2. Wishlist\n";
 
-            std::cout << "3. Search Games\n"; // --- Changed: Added Search Games option ---
-
-            std::cout << "4. navbar\n";
+            std::cout << "3. navbar\n";
 
             std::cout << "Enter your choice: ";
 
@@ -963,7 +1030,7 @@ class GameMarketplace
 
                 std::cout << "\nOptions:\n";
 
-                std::cout << "1. Add to Wishlist\n"; // --- Changed: Implemented add to wishlist logic ---
+                std::cout << "1. Add to Wishlist\n"; 
 
                 std::cout << "2. back\n";
 
@@ -1019,37 +1086,8 @@ class GameMarketplace
 
               }
 
-              // --- Changed: Implemented Search Games in Library ---
 
             } else if (input == "3") {
-
-              std::string searchQuery;
-
-              std::cout << "Enter search query: ";
-
-              std::cin.ignore();
-
-              std::getline(std::cin, searchQuery);
-
-              std::vector < Game * > searchResults = searchGames(searchQuery);
-
-              if (!searchResults.empty()) {
-
-                std::cout << "\nSearch results:\n";
-
-                for (const auto & game: searchResults) {
-
-                  std::cout << "- " << game -> getTitle() << std::endl;
-
-                }
-
-              } else {
-
-                std::cout << "No games found matching your query.\n";
-
-              }
-
-            } else if (input == "4") {
 
               break; // Go back to navbar
 
@@ -1067,7 +1105,7 @@ class GameMarketplace
 
         }
 
-      } else if (input == "4") { // Login/Logout
+      } else if (input == "5") { // Login/Logout
 
         if (loggedIn) {
 
@@ -1079,7 +1117,6 @@ class GameMarketplace
 
         } else {
 
-          // --- Changed: Implemented login logic with UI switching ---
 
           std::cout << "\nLogin:\n";
 
